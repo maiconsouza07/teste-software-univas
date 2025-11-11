@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { api } from '../services/api'
+// frontend/tests/integration/Users.load.int.test.tsx
+import { render, screen, waitFor } from '@testing-library/react'
+import { suite as describe } from 'node:test'
+import { server, apiGet, json } from '../../tests/setup'
 
 interface User {
   id: string
@@ -185,3 +189,22 @@ const Users: React.FC = () => {
 }
 
 export default Users
+describe('Users integration - carga de lista', () => {
+  it('renderiza usuários retornados pela API', async () => {
+    server.use(
+      apiGet('/users', (_req: any) => json({
+        data: [
+          { id: '1', name: 'Ana', email: 'ana@ex.com', createdAt: new Date().toISOString(), tasks: [] },
+        ],
+      })
+      )
+    )
+
+    render(<Users />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Ana')).toBeInTheDocument()
+      expect(screen.getByText('ana@ex.com')).toBeInTheDocument()
+    })
+  })
+})
